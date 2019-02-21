@@ -28,30 +28,31 @@ app.get('/', function (req, res) {
     res.send(`RoboMatch Backend`)
 });
 
-app.get('/users', async function (req, res) {
-    let users = []
-
-    await db.collection('leaderboard').get().then((snapshot) => {
-        snapshot.docs.forEach(doc => {
-            users.push(doc.data().name)
-        });
-    })
-    res.json(users)
-})
-
 app.get('/view', async function (req, res) {
 console.log(req.query)
-    let sort = [req.query.field, req.query.order]
+    let sort = [req.query.field, req.query.order];
+    let filter = [req.query.filter, req.query.option]
     let results = []
 
-    await db.collection('leaderboard').orderBy(sort[0], sort[1]).get().then((snapshot) => {
-        snapshot.docs.forEach(doc => {
-            results.push(doc.data())
-        });
-    })
+console.log("RQF: ", req.query.filter)
+    if(req.query.filter !== "all") {
+        await db.collection('leaderboard').where(filter[0], "==", filter[1]).orderBy(sort[0], sort[1]).get().then((snapshot) => {
+            snapshot.docs.forEach(doc => {
+                results.push(doc.data())
+            });
+        })
+        
+    }else {
+        await db.collection('leaderboard').orderBy(sort[0], sort[1]).get().then((snapshot) => {
+            snapshot.docs.forEach(doc => {
+                results.push(doc.data())
+            });
+        })
+    }
+
+    
 
     res.json(results)
-    console.log(results)
 });
 
 app.post('/submit', function (req, res) {
